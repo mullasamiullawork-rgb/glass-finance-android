@@ -1,0 +1,10 @@
+{
+  "appId": "com.samiulla.glassfinance",
+  "appName": "Glass Finance",
+  "webDir": "www",
+  "android": { "allowMixedContent": false, "captureInput": true, "webContentsDebuggingEnabled": false },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 900, "launchAutoHide": true, "backgroundColor": "#0b1020", "showSpinner": false, "androidScaleType": "CENTER_CROP", "splashFullScreen": true, "splashImmersive": false },
+    "LocalNotifications": { "smallIcon": "ic_stat_glass", "iconColor": "#6366f1" }
+  }
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en-IN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' capacitor: https://localhost; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' capacitor: https://localhost" />
+    <title>Glass Finance</title>
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <div class="orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="app">
+      <div id="storebanner" class="banner glass" role="alert" hidden><p>⚠ Storage is unavailable, so changes are kept only until you close the app.</p></div>
+      <main id="view"></main>
+    </div>
+    <nav id="tabbar" class="tabbar glass" aria-label="Main"></nav>
+    <button id="fab" class="fab" aria-label="Add transaction"></button>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<!--SCRIPTS-->
+  </body>
+</html>
