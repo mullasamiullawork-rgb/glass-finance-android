@@ -67,8 +67,10 @@ class Reconciler(
     fun reconcile(p: ParsedPayment, existing: List<DetectedTx>, categorizer: Categorizer = Categorizer()): ReconcileResult {
         // 1. Strong identifiers.
         val strong = existing.firstOrNull { e ->
-            (p.upiRef != null && (e.upiRef == p.upiRef || e.txnId == p.upiRef)) ||
-                (p.txnId != null && (e.txnId == p.txnId || e.upiRef == p.txnId))
+         !e.deleted && (
+                 (p.upiRef != null && (e.upiRef == p.upiRef || e.txnId == p.upiRef)) ||
+                    (p.txnId != null && (e.txnId == p.txnId || e.upiRef == p.txnId))
+         )
         }
         if (strong != null) return mergeOrDuplicate(strong, p)
 
