@@ -191,6 +191,14 @@ class BankSmsParser(private val smsAppName: String, private val packageName: Str
         "Indian Bank" to Regex("""\bIndian\s+Bank\b""", RegexOption.IGNORE_CASE),
         "Paytm Payments Bank" to Regex("""\bPaytm\s+Payments?\s+Bank\b""", RegexOption.IGNORE_CASE),
         "Airtel Payments Bank" to Regex("""\bAirtel\s+Payments?\s+Bank\b""", RegexOption.IGNORE_CASE),
+       "Yes Bank" to Regex("""\bYes\s+Bank\b""", RegexOption.IGNORE_CASE),
+       "IndusInd Bank" to Regex("""\bIndusInd\b""", RegexOption.IGNORE_CASE),
+       "IDFC First Bank" to Regex("""\bIDFC\s*(?:First)?\b""", RegexOption.IGNORE_CASE),
+       "Federal Bank" to Regex("""\bFederal\s+Bank\b""", RegexOption.IGNORE_CASE),
+       "RBL Bank" to Regex("""\bRBL\s+Bank\b""", RegexOption.IGNORE_CASE),
+       "HSBC" to Regex("""\bHSBC\b""", RegexOption.IGNORE_CASE),
+       "AU Small Finance Bank" to Regex("""\bAU\s+(?:Small\s+Finance\s+)?Bank\b""", RegexOption.IGNORE_CASE),
+       "Bandhan Bank" to Regex("""\bBandhan\s+Bank\b""", RegexOption.IGNORE_CASE),
     )
     private val TO = Regex("""(?:to|trf\s+to|towards|at|;)\s+(?:VPA\s+)?([A-Za-z0-9@._ ]{2,40}?)(?=\s+(?:on|ref|UPI|Avl|avbl|via|if|Not|\.|$)|[.;\n]|$)""", RegexOption.IGNORE_CASE)
     private val FROM = Regex("""(?:from|by|frm)\s+(?:VPA\s+)?([A-Za-z0-9@._ ]{2,40}?)(?=\s+(?:on|ref|UPI|Avl|avbl|via|\.|$)|[.;\n]|$)""", RegexOption.IGNORE_CASE)
@@ -202,7 +210,7 @@ class BankSmsParser(private val smsAppName: String, private val packageName: Str
         val isDebit = DEBIT.containsMatchIn(s)
         val isCredit = CREDIT.containsMatchIn(s)
         if (!isDebit && !isCredit) return null
-        if (Text.isPromo(s) && !Regex("""\b(debited|credited)\b""", RegexOption.IGNORE_CASE).containsMatchIn(s)) return null
+        if (Text.isPromo(s) && !Regex("""\b(debited|credited|spent|charged|withdrawn)\b""", RegexOption.IGNORE_CASE).containsMatchIn(s)) return null
         val amount = Text.amount(s) ?: return null
 
         val reversal = Vocab.REVERSAL.containsMatchIn(s)
@@ -261,7 +269,9 @@ object PaymentAppRegistry {
         upi("com.phonepe.app", "PhonePe",
             sent = listOf(Regex("""(?:Paid|Sent)\s+(?:₹|Rs\.?)\s*[0-9,.]+\s+to\s+([^\n]+?)(?=\s+(?:from|using|via|successfully)\b|[.\n]|$)""", RegexOption.IGNORE_CASE))),
         upi("in.org.npci.upiapp", "BHIM"),
-        upi("in.amazon.mShop.android.shopping", "Amazon Pay"),
+        upi("in.amazon.mShop.android.shopping", "Amazon Pay",
+       sent = listOf(Regex("""(?:Paid|Sent)\s+(?:₹|Rs\.?)\s*[0-9,.]+\s+to\s+([^\n]+?)(?=\s+(?:via|using|from|on|with)\b|[.\n]|$)""", RegexOption.IGNORE_CASE)),
+         recv = listOf(Regex("""(?:Received|Got)\s+(?:₹|Rs\.?)\s*[0-9,.]+\s+from\s+([^\n]+?)(?=\s+(?:in|on|via|to)\b|[.\n]|$)""", RegexOption.IGNORE_CASE))  ),    )
         upi("com.dreamplug.androidapp", "CRED"),
         upi("com.mobikwik_new", "MobiKwik"),
         upi("money.super.payments", "super.money"),
