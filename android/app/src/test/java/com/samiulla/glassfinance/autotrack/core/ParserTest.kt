@@ -91,4 +91,17 @@ class ParserTest {
         assertEquals(125050L, Text.amount("₹1,250.50 sent"))
         assertEquals(50000L, Text.amount("INR 500 debited"))
     }
+@Test fun additionalIndianBanksAndSpentSms() {
+    val idfc = parse(RawNotification("com.google.android.apps.messaging", "IDFC", "Rs.350.00 spent on IDFC First Bank Card xx1234 at Swiggy on 26-11-26. UPI Ref 987654321012.", null, null, 1_700_000_000_000L))!!
+assertEquals(35000L, idfc.amountPaise)
+assertEquals(Direction.DEBIT, idfc.direction)
+assertEquals("IDFC First Bank", idfc.bankName)
+assertEquals("987654321012", idfc.upiRef)
+
+val yes = parse(RawNotification("com.android.mms", "YESBANK", "INR 1,200.00 credited to Yes Bank A/c xx4321 from Rahul. Avl Bal INR 5,400.00", null, null, 1_700_000_000_000L))!!
+assertEquals(120000L, yes.amountPaise)
+assertEquals(Direction.CREDIT, yes.direction)
+assertEquals("Yes Bank", yes.bankName)
+assertEquals(540000L, yes.availableBalancePaise)
+}
 }
