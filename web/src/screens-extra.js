@@ -280,6 +280,20 @@
       if (entry.length === 4) { if ((await sha(entry)) === GF.store.data.settings.pin) { el.remove(); locked = false; resolve(); } else { entry = ""; GF.haptic(40); draw("Wrong PIN, try again"); } }
     };
     draw(); document.body.append(el);
+    if (GF.store.data.settings.biometric !== false && GF.native && GF.native.AutoTrack && GF.native.AutoTrack.checkBiometric) {
+      GF.native.AutoTrack.checkBiometric().then((res) => {
+        if (!res || !res.available || !locked) return;
+        const bioBtn = document.createElement("button");
+        bioBtn.className = "btn glass";
+        bioBtn.textContent = "👆 Unlock with Biometrics";
+        const tryBio = () => GF.native.AutoTrack.authenticateBiometric({ title: "Unlock Glass Finance", subtitle: "Verify your identity to view your finances" })
+          .then((r) => { if (r && r.authenticated && locked) { el.remove(); locked = false; resolve(); } })
+          .catch(() => {});
+        bioBtn.onclick = tryBio;
+        el.append(bioBtn);
+        tryBio();
+      }).catch(() => {});
+    }
   });
   GF.hooks.boot.push(() => GF.lock());
   document.addEventListener("visibilitychange", () => {
@@ -314,6 +328,27 @@
   function printSummary(from, to, label) {
     const d = GF.store.data, T = C.totals(d.transactions, from, to), F = (v) => GF.fmt(v, { force: true }), bal = C.balances(d);
     const txs = d.transactions.filter((t) => C.inRange(t, from, to)).sort((a, b) => (a.dateTime < b.dateTime ? -1 : 1));
+    if (GF.native && GF.native.AutoTrack && GF.native.AutoTrack.exportPdfSummary) {
+      const lines = [
+        "## Overview",
+        "Income: " + F(T.income) + "   Expense: " + F(T.expense) + "   Savings: " + F(T.savings) + "   Transactions: " + txs.length,
+        "",
+        "## Account Balances",
+        ...d.accounts.map((a) => a.name + ": " + F(bal[a.id] ?? 0)),
+        "",
+        "## Transactions",
+        ...txs.slice(0, 120).map((t) => {
+          const cat = GF.cat(t.categoryId || t.category), acc = GF.acc(t.accountId);
+          const sign = t.type === "income" ? "+" : t.type === "expense" ? "-" : "";
+          return D.short(t.dateTime) + " | " + (t.merchant || t.note || cat.name) + " | " + acc.name + " | " + sign + F(t.amount);
+        }),
+      ];
+      const sub = (from ? D.short(from) + " " + from.slice(0, 4) + " to " + D.short(to) + " " + to.slice(0, 4) : "All time") + " · Generated " + new Date().toLocaleString("en-IN");
+      GF.native.AutoTrack.exportPdfSummary({ title: "Glass Finance – " + label, subtitle: sub, fileName: "GlassFinance-" + label.replace(/\s+/g, "-") + ".pdf", lines })
+        .then(() => GF.toast("PDF summary ready to save or share"))
+        .catch(() => {});
+      return;
+    }
     const html = `<div id="print-root"><h1>Glass Finance — ${esc(label)}</h1><p>${from ? D.short(from) + " " + from.slice(0, 4) + " to " + D.short(to) + " " + to.slice(0, 4) : "All time"} · generated ${new Date().toLocaleString("en-IN")}</p>
       <table><tr><th>Income</th><th>Expenses</th><th>Saved</th><th>Savings rate</th></tr><tr><td>${F(T.income)}</td><td>${F(T.expense)}</td><td>${F(T.savings)}</td><td>${T.rate == null ? "—" : GF.pct(T.rate)}</td></tr></table>
       <h2>Spending by category</h2><table><tr><th>Category</th><th>Amount</th><th>Share</th></tr>${C.byCategory(d.transactions, from, to).map((r) => `<tr><td>${esc(GF.cat(r.categoryId).name)}</td><td>${F(r.amount)}</td><td>${T.expense ? GF.pct((r.amount / T.expense) * 100) : "—"}</td></tr>`).join("")}</table>
