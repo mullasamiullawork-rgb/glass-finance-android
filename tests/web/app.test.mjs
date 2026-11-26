@@ -115,10 +115,12 @@ test("auto-track mirrors REFUND and incomplete TRANSFER safely", async () => {
   assert.equal(refTx.type, "income");
   assert.equal(refTx.categoryId, "cat_refunds");
 
+  const beforeTotals = GF.calc.totals(GF.store.data.transactions);
   GF.auto.mirror({ id: "auto_trf", direction: "DEBIT", kind: "TRANSFER", amountPaise: 200000, status: "SUCCESS", countsInLedger: true, counterparty: "Self", appName: "Paytm", sources: ["UPI_APP_NOTIFICATION"], verification: "PROVISIONAL", occurredAt: Date.now() });
-  const trfTx = GF.store.data.transactions.find((t) => t.id === "auto_trf");
-  assert.equal(trfTx.type, null);
-});
+  const afterTotals = GF.calc.totals(GF.store.data.transactions);
+  assert.equal(afterTotals.income, beforeTotals.income);
+  assert.equal(afterTotals.expense, beforeTotals.expense);
+}  );
 
 test("mergeAll preserves existing records and lock resolves when no PIN is set", async () => {
   const w = boot(); await tick();
