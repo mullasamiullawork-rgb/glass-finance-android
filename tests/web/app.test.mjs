@@ -106,3 +106,26 @@ test("encrypted backup round-trips and rejects a wrong password", async () => {
   assert.equal(JSON.stringify(await GF.decryptBackup(enc, "secret123")), JSON.stringify({ hello: "world", n: 1 }));
   await assert.rejects(() => GF.decryptBackup(enc, "wrong-pass"));
 });
+
+test("auto-track mirrors REFUND and incomplete TRANSFER safely", async () => {
+  const w = boot(); await tick();
+  const { GF } = w;
+  GF.auto.mirror({ id: "auto_ref", direction: "CREDIT", kind: "REFUND", amountPaise: 25000, status: "SUCCESS", countsInLedger: true, counterparty: "Swiggy", appName: "PhonePe", sources: ["UPI_APP_NOTIFICATION"], verification: "PROVISIONAL", categoryId: "cat_refunds", occurredAt: Date.now() });
+  const refTx = GF.store.data.transactions.find((t) => t.id === "auto_ref");
+  assert.equal(refTx.type, "income");
+  assert.equal(refTx.categoryId, "cat_refunds");
+
+  GF.auto.mirror({ id: "auto_trf", direction: "DEBIT", kind: "TRANSFER", amountPaise: 200000, status: "SUCCESS", countsInLedger: true, counterparty: "Self", appName: "Paytm", sources: ["UPI_APP_NOTIFICATION"], verification: "PROVISIONAL", occurredAt: Date.now() });
+  const trfTx = GF.store.data.transactions.find((t) => t.id === "auto_trf");
+  assert.equal(trfTx.type, null);
+});
+
+test("mergeAll preserves existing records and lock resolves when no PIN is set", async () => {
+  const w = boot(); await tick();
+  const { GF } = w;
+  await GF.lock();
+  const count0 = GF.store.data.transactions.length;
+  GF.store.mergeAll({ transactions: [{ id: "tx_merged_1", type: "expense", amount: 1500, accountId: "acc_cash", categoryId: "cat_food", dateTime: "2026-11-25T12:00", merchant: "Merge Chai" }] });
+  assert.equal(GF.store.data.transactions.length, count0 + 1);
+  assert.ok(GF.store.data.transactions.some((t) => t.id === "tx_merged_1"));
+});
