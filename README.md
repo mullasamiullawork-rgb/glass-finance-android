@@ -78,6 +78,10 @@ android/app/src/main/java/com/samiulla/glassfinance/
 
 **Future-ready:** provider interfaces for Account Aggregator, cloud sync, receipt OCR, investments, loans/EMI, credit score and family finance are declared but report `isAvailable() = false` — nothing fake is wired in.
 
+- **Biometric Unlock**: Native Android `BiometricPrompt` fingerprint/face unlock integrated with the 4-digit PIN lock.
+- **Native PDF Summary**: Direct Android `PdfDocument` export shared via `FileProvider` (no print-dialog workaround needed on Android).
+- **Account Aggregator (RBI / Sahamati)**: Direct Account Aggregator integration requires an RBI/SEBI/IRDAI/PFRDA-regulated Financial Information User (FIU) entity, ReBIT callback API implementation, sandbox testing (Finvu, OneMoney, NADL, Digio), Sahamati-empaneled certifier audit, and per-fetch settlement fees (effective Dec 1, 2026) — see `https://sahamati.org.in/financial-information-user-fiu/`. Until an FIU partner is connected, Glass Finance uses the local `GF.providers` interface and Bank Statement CSV import.
+
 ---
 
 ## Development
