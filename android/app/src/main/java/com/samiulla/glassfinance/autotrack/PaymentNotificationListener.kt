@@ -36,11 +36,16 @@ class PaymentNotificationListener : NotificationListenerService() {
         val n = sbn.notification ?: return
         if (n.flags and Notification.FLAG_GROUP_SUMMARY != 0) return
         val ex = n.extras ?: return
+        val textLines = ex.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+            ?.mapNotNull { it?.toString()?.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?.joinToString("\n")
+            ?.takeIf { it.isNotEmpty() }
         val raw = RawNotification(
             packageName = pkg,
             title = ex.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
             text = ex.getCharSequence(Notification.EXTRA_TEXT)?.toString(),
-            bigText = ex.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString(),
+            bigText = ex.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.takeIf { it.isNotBlank() } ?: textLines,
             subText = ex.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString(),
             postedAt = sbn.postTime,
         )
