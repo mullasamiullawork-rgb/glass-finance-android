@@ -271,7 +271,7 @@ object PaymentAppRegistry {
         upi("in.org.npci.upiapp", "BHIM"),
         upi("in.amazon.mShop.android.shopping", "Amazon Pay",
        sent = listOf(Regex("""(?:Paid|Sent)\s+(?:₹|Rs\.?)\s*[0-9,.]+\s+to\s+([^\n]+?)(?=\s+(?:via|using|from|on|with)\b|[.\n]|$)""", RegexOption.IGNORE_CASE)),
-         recv = listOf(Regex("""(?:Received|Got)\s+(?:₹|Rs\.?)\s*[0-9,.]+\s+from\s+([^\n]+?)(?=\s+(?:in|on|via|to)\b|[.\n]|$)""", RegexOption.IGNORE_CASE))  ),    )
+         recv = listOf(Regex("""(?:Received|Got)\s+(?:₹|Rs\.?)\s*[0-9,.]+\s+from\s+([^\n]+?)(?=\s+(?:in|on|via|to)\b|[.\n]|$)""", RegexOption.IGNORE_CASE))  ),    
         upi("com.dreamplug.androidapp", "CRED"),
         upi("com.mobikwik_new", "MobiKwik"),
         upi("money.super.payments", "super.money"),
