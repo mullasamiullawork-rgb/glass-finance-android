@@ -125,6 +125,13 @@ class ReconcilerTest {
         all.forEach { l.feed(it) }
         assertEquals(n, l.rows.size)
     }
+@Test fun deletedTransactionNotMatchedByStrongRef() {
+    val r = Reconciler()
+val first = r.reconcile(parse(F.paytmPaid)!!, emptyList()) as ReconcileResult.Created
+val deleted = first.tx.copy(deleted = true)
+val second = r.reconcile(parse(F.sbiDebitSameRef)!!, listOf(deleted))
+assertTrue(second is ReconcileResult.Created)
+}
 }
 
 class CategorizerTest {
