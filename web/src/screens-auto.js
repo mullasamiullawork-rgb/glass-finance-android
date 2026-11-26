@@ -1,4 +1,4 @@
-/* Glass Finance — Automatic Tracking dashboard, Automatic Transactions, statement import, UPI pay, diagnostics. */
+/* Finance Tracker — Automatic Tracking dashboard, Automatic Transactions, statement import, UPI pay, diagnostics. */
 (function () {
   const GF = window.GF, D = GF.D, esc = GF.esc, $ = GF.$, $$ = GF.$$;
   const A = GF.auto;
@@ -14,7 +14,7 @@
   GF.screen("auto", {
     tab: "more", title: () => "Automatic Tracking",
     render() {
-      if (!A.available()) return `${GF.topbar("Automatic Tracking", { back: true })}<div class="empty glass card"><div class="e">📱</div><p><b>Works in the Android app.</b></p><p class="small">Reading UPI and bank alerts needs Android's notification access, so this screen is live only in the installed Glass Finance app. You can still import a bank statement.</p><button class="btn primary" data-act="importStatement">Import bank statement (CSV)</button></div>`;
+      if (!A.available()) return `${GF.topbar("Automatic Tracking", { back: true })}<div class="empty glass card"><div class="e">📱</div><p><b>Works in the Android app.</b></p><p class="small">Reading UPI and bank alerts needs Android's notification access, so this screen is live only in the installed Finance Tracker app. You can still import a bank statement.</p><button class="btn primary" data-act="importStatement">Import bank statement (CSV)</button></div>`;
       const s = A.status;
       if (!s) { A.refreshStatus().then(() => GF.render()); return `${GF.topbar("Automatic Tracking", { back: true })}<div class="card glass"><p class="muted">Checking status…</p></div>`; }
       const upi = s.apps.filter((a) => a.kind === "UPI_APP"), sms = s.apps.filter((a) => a.kind === "SMS_APP");
@@ -23,8 +23,8 @@
       return `${GF.topbar("Automatic Tracking", { back: true, right: `<button class="iconbtn glass" data-act="autoRefresh" aria-label="Refresh">${GF.icon("refresh") || "↻"}</button>` })}
       <section class="hero glass">
         <div class="lbl">${dot(on, s.enabled && !s.notificationAccess)}${on ? (s.listenerConnected ? "Tracking is on" : "On · waiting for Android to connect the listener") : !s.enabled ? "Tracking is off" : "Needs notification access"}</div>
-        <div class="big" style="font-size:22px;line-height:1.3">${on ? "Payments you send and receive are recorded automatically." : !s.enabled ? "Turn tracking on to record UPI payments automatically." : "Allow notification access so Glass Finance can see payment alerts."}</div>
-        ${!s.notificationAccess ? `<button class="btn primary block" data-act="autoAccess" style="margin-top:12px">Allow notification access</button><p class="tiny muted" style="margin-top:8px">Android → Notification access → Glass Finance. If Android says "Restricted setting", open App info → ⋮ → Allow restricted settings first.</p>` : ""}
+        <div class="big" style="font-size:22px;line-height:1.3">${on ? "Payments you send and receive are recorded automatically." : !s.enabled ? "Turn tracking on to record UPI payments automatically." : "Allow notification access so Finance Tracker can see payment alerts."}</div>
+        ${!s.notificationAccess ? `<button class="btn primary block" data-act="autoAccess" style="margin-top:12px">Allow notification access</button><p class="tiny muted" style="margin-top:8px">Android → Notification access → Finance Tracker. If Android says "Restricted setting", open App info → ⋮ → Allow restricted settings first.</p>` : ""}
         <div class="kpis" style="margin-top:12px"><div class="kpi"><span>Last detection</span><b>${ago(s.lastDetection)}</b></div><div class="kpi"><span>Last bank sync</span><b>${s.lastBankSync ? ago(s.lastBankSync) : "Not connected"}</b></div></div>
       </section>
       <div class="grid3" style="margin:12px 0">
@@ -51,7 +51,7 @@
         <div class="item"><span class="meta"><span class="t">Automatic tracking</span><span class="s">Record verified successful payments without asking</span></span>${toggle("at-on", s.enabled, "Automatic tracking")}</div>
         <div class="item"><span class="meta"><span class="t">Automatic categories</span><span class="s">Tea shop → Food, petrol → Transport… Your corrections are remembered.</span></span>${toggle("at-cat", s.autoCategorize, "Automatic categories")}</div>
         <button class="item" data-act="autoAccount"><span class="meta"><span class="t">Default account for UPI</span><span class="s">${esc((GF.acc(GF.store.data.settings.autoAccountId) || {}).name || "Auto: first bank account")} · accounts with matching last 4 digits are used first</span></span><span class="chev">${GF.icon("chev")}</span></button>
-        <button class="item" data-act="upiPay"><span class="meta"><span class="t">Pay with UPI from Glass Finance</span><span class="s">Opens your UPI app; the result is recorded as pending until confirmed</span></span><span class="chev">${GF.icon("chev")}</span></button>
+        <button class="item" data-act="upiPay"><span class="meta"><span class="t">Pay with UPI from Finance Tracker</span><span class="s">Opens your UPI app; the result is recorded as pending until confirmed</span></span><span class="chev">${GF.icon("chev")}</span></button>
         <button class="item" data-act="autoDiag"><span class="meta"><span class="t">Detection diagnostics</span><span class="s">Recent outcomes and a format tester</span></span><span class="chev">${GF.icon("chev")}</span></button>
         <button class="item" data-act="autoClear"><span class="meta"><span class="t exp">Delete automatic tracking data</span><span class="s">Removes detected records, diagnostics and learned categories</span></span></button>
       </div>
@@ -92,7 +92,7 @@
   };
   GF.acts.aaInfo = () => GF.sheet({ title: "Account Aggregator", body: `<p>India's Account Aggregator network (RBI NBFC-AA, e.g. Finvu, OneMoney, CAMS Finserv, Anumati) lets you share bank transactions by consent, without passwords.</p>
     <p class="small muted">To receive data, an app must be a regulated Financial Information User (FIU) or use one, such as Setu, Finarkein or a bank's FIU sandbox. That needs a business registration, a partner contract and API keys, so it isn't connected in this build. The code has a ready provider interface for it.</p>
-    <p class="small"><b>Today:</b> import your bank's statement CSV. Glass Finance never asks for net-banking passwords or UPI PINs.</p>` });
+    <p class="small"><b>Today:</b> import your bank's statement CSV. Finance Tracker never asks for net-banking passwords or UPI PINs.</p>` });
 
   /* ---------- AUTOMATIC TRANSACTIONS ---------- */
   let filter = "ALL";
@@ -235,7 +235,7 @@
   };
 
   /* ---------- Pay with UPI (Source D) ---------- */
-  GF.acts.upiPay = () => GF.closeAll(() => GF.sheet({ title: "Pay with UPI", body: `<p class="small muted">Glass Finance opens your UPI app with these details. You enter your UPI PIN in that app — never here. The app's reply is recorded as provisional until a bank alert or statement confirms it. Some apps limit payments started from other apps.</p>
+  GF.acts.upiPay = () => GF.closeAll(() => GF.sheet({ title: "Pay with UPI", body: `<p class="small muted">Finance Tracker opens your UPI app with these details. You enter your UPI PIN in that app — never here. The app's reply is recorded as provisional until a bank alert or statement confirms it. Some apps limit payments started from other apps.</p>
       <label class="field"><span>UPI ID</span><input class="input" id="up-vpa" placeholder="name@bank" autocomplete="off" autocapitalize="off"></label>
       <label class="field"><span>Name</span><input class="input" id="up-name" placeholder="e.g. Tea Stall" maxlength="40"></label>
       <label class="field"><span>Amount (₹)</span><input class="input amt" id="up-amt" inputmode="decimal"></label>

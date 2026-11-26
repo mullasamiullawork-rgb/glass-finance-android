@@ -1,4 +1,4 @@
-/* Glass Finance — Analytics with hand-drawn SVG charts. */
+/* Finance Tracker — Analytics with hand-drawn SVG charts. */
 (function () {
   const GF = window.GF, D = GF.D, C = GF.calc, esc = GF.esc, $ = GF.$;
   GF.an = { kind: "month", from: D.addDays(D.today(), -29), to: D.today() };

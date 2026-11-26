@@ -1,4 +1,4 @@
-# Glass Finance for Android
+# Finance Tracker for Android
 
 A private, offline personal finance app for Android with a Liquid Glass–inspired interface and **automatic tracking of UPI payments you send and receive**. Built for INR (₹). All data stays on your phone.
 
@@ -10,14 +10,22 @@ A private, offline personal finance app for Android with a Liquid Glass–inspir
 
 ---
 
+
+## What's new in v2.0
+- Renamed to **Finance Tracker** (same package `com.samiulla.glassfinance`, so it installs over v1 and keeps your data).
+- Bills and Recurring can repeat **every 3 months** or **every 6 months**; the bill form previews the next two due dates.
+- Month-end bills keep their day (31 Jan → 28 Feb → 31 Mar instead of sticking on the 28th).
+- Smoother Liquid Glass: background orbs no longer use a live blur filter, lighter backdrop blur, spring press feedback, eased sheets and screen changes.
+- Home quick actions (Expense, Income, Transfer, Bills), More as glass tiles, fixed overlapping text on bill rows and swipe actions showing through transaction rows.
+
 ## Install on your phone (no PC needed)
 
 1. On your Android phone, open **https://github.com/mullasamiullawork-rgb/glass-finance-android/releases**.
-2. Open the **"Glass Finance (latest debug build)"** pre-release and tap **`GlassFinance-debug.apk`** to download it.
+2. Open the **"Finance Tracker (latest debug build)"** pre-release and tap **`FinanceTracker-debug.apk`** to download it.
 3. Open the downloaded file. If Android asks, allow **"Install unknown apps"** for your browser (Chrome → Allow from this source), then tap **Install**.
-4. Open Glass Finance → **More → Automatic Tracking → Allow notification access**.
-   - On Android 13+ you may see **"Restricted setting"** for apps installed from a file. Fix: *Settings → Apps → Glass Finance → ⋮ (top-right) → Allow restricted settings*, then grant notification access again.
-   - On Xiaomi/POCO (HyperOS/MIUI): also set *Settings → Apps → Glass Finance → Battery saver → **No restrictions*** and enable **Autostart**, so Android doesn't stop the tracker in the background.
+4. Open Finance Tracker → **More → Automatic Tracking → Allow notification access**.
+   - On Android 13+ you may see **"Restricted setting"** for apps installed from a file. Fix: *Settings → Apps → Finance Tracker → ⋮ (top-right) → Allow restricted settings*, then grant notification access again.
+   - On Xiaomi/POCO (HyperOS/MIUI): also set *Settings → Apps → Finance Tracker → Battery saver → **No restrictions*** and enable **Autostart**, so Android doesn't stop the tracker in the background.
 
 Alternative: every build is also attached as a zipped artifact on the **Actions** tab (sign-in required, download → unzip → install).
 
@@ -36,7 +44,7 @@ Alternative: every build is also attached as a zipped artifact on the **Actions*
 | A. UPI app notifications — Paytm, Google Pay, PhonePe, BHIM, Amazon Pay, CRED, MobiKwik, super.money, FamApp, Navi | ✅ Implemented, unit-tested with fixtures | `NotificationListenerService`; per-app parsers in a configurable registry |
 | B. Bank SMS alerts (SBI, HDFC, ICICI, Axis, Kotak, BoB, Canara, Union, PNB, IPPB, Indian Bank, Paytm/Airtel Payments Bank…) | ✅ Implemented, unit-tested | Read from the **notification** of your SMS app (Google Messages, Xiaomi/POCO Messages, Samsung, Truecaller, OnePlus). **No `READ_SMS` permission.** OTPs, promotions and personal messages are discarded unread |
 | C. Bank transaction history | ✅ CSV statement import (tested) · ❌ Account Aggregator not connected | AA needs an RBI-regulated FIU partner (e.g. Setu, Finarkein, or a bank FIU), a business entity, contract and API keys. Interface is ready (`GF.providers`) |
-| D. Payments started from Glass Finance | ✅ Implemented | UPI deep-link intent; the app's reply is recorded as **provisional/pending**, never as bank-settled. Some UPI apps restrict intent payments |
+| D. Payments started from Finance Tracker | ✅ Implemented | UPI deep-link intent; the app's reply is recorded as **provisional/pending**, never as bank-settled. Some UPI apps restrict intent payments |
 
 Every detection goes through one **reconciliation engine**, so a payment seen by Paytm, then by an SBI SMS, then in a statement is **one** transaction that gets upgraded:
 
@@ -80,7 +88,7 @@ android/app/src/main/java/com/samiulla/glassfinance/
 
 - **Biometric Unlock**: Native Android `BiometricPrompt` fingerprint/face unlock integrated with the 4-digit PIN lock.
 - **Native PDF Summary**: Direct Android `PdfDocument` export shared via `FileProvider` (no print-dialog workaround needed on Android).
-- **Account Aggregator (RBI / Sahamati)**: Direct Account Aggregator integration requires an RBI/SEBI/IRDAI/PFRDA-regulated Financial Information User (FIU) entity, ReBIT callback API implementation, sandbox testing (Finvu, OneMoney, NADL, Digio), Sahamati-empaneled certifier audit, and per-fetch settlement fees (effective Dec 1, 2026) — see `https://sahamati.org.in/financial-information-user-fiu/`. Until an FIU partner is connected, Glass Finance uses the local `GF.providers` interface and Bank Statement CSV import.
+- **Account Aggregator (RBI / Sahamati)**: Direct Account Aggregator integration requires an RBI/SEBI/IRDAI/PFRDA-regulated Financial Information User (FIU) entity, ReBIT callback API implementation, sandbox testing (Finvu, OneMoney, NADL, Digio), Sahamati-empaneled certifier audit, and per-fetch settlement fees (effective Dec 1, 2026) — see `https://sahamati.org.in/financial-information-user-fiu/`. Until an FIU partner is connected, Finance Tracker uses the local `GF.providers` interface and Bank Statement CSV import.
 
 ---
 

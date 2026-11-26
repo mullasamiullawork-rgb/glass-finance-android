@@ -1,4 +1,4 @@
-/* Glass Finance — Settings, categories manager, export/backup/restore/import, erase. */
+/* Finance Tracker — Settings, categories manager, export/backup/restore/import, erase. */
 (function () {
   const GF = window.GF, D = GF.D, esc = GF.esc, $ = GF.$, $$ = GF.$$;
   GF.hooks.settingsSections = GF.hooks.settingsSections || [];
@@ -22,7 +22,7 @@
       <h2 class="h2">Your data</h2><div class="list glass">
         ${row("Export", "CSV or JSON for a date range", "", "exportSheet")}
         ${row("Back up", "Everything, as one JSON file", "", "backup")}
-        ${row("Restore", "From a Glass Finance backup", "", "restore")}
+        ${row("Restore", "From a Finance Tracker backup", "", "restore")}
         ${row("Import transactions", "From a CSV or JSON file", "", "importFile")}
         ${GF.store.hasSample() ? row("Clear sample data", "Remove every demo item", "", "clearSample") : ""}
         ${row('<span class="exp">Erase all data</span>', "Start over with an empty app", "", "eraseAll")}
@@ -106,7 +106,7 @@
   /* Restore */
   GF.restoreFrom = (obj) => {
     const err = GF.store.validate(obj);
-    if (err) return GF.sheet({ title: "Can't restore", body: `<div class="errbox">${esc(err)}</div><p class="muted small">Pick a backup made with Glass Finance's Back up option.</p>` });
+    if (err) return GF.sheet({ title: "Can't restore", body: `<div class="errbox">${esc(err)}</div><p class="muted small">Pick a backup made with Finance Tracker's Back up option.</p>` });
     GF.sheet({
       title: "Restore backup",
       body: `<p class="muted">The backup has ${obj.accounts.length} accounts and ${obj.transactions.length} transactions.</p>

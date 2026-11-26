@@ -1,4 +1,4 @@
-/* Glass Finance — Liquid Glass design system */
+/* Finance Tracker — Liquid Glass design system */
 :root{
   --bg:#eef1f8;--bg2:#e6eaf5;--text:#0d1222;--text2:#5b6478;--text3:#8a93a6;
   --glass:rgba(255,255,255,.58);--glass-2:rgba(255,255,255,.78);--glass-3:rgba(255,255,255,.36);
@@ -200,3 +200,67 @@ html.native,html.native body{overscroll-behavior:none;-webkit-tap-highlight-colo
 html.native input,html.native textarea{user-select:text}
 .btn.sm{min-height:44px;padding:0 14px;font-size:14px}
 @media (prefers-reduced-motion:reduce){.lockscreen *{transition:none!important}}
+/* ===== v2: smoother Liquid Glass ===== */
+:root{--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.4,.64,1);--blur:saturate(170%) blur(18px);--blur-strong:saturate(180%) blur(26px);
+  --sheen:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 42%)}
+:root[data-theme=dark]{--sheen:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0) 42%)}
+html{scroll-behavior:smooth}
+/* orbs: gradients instead of a live blur filter, GPU-composited, so glass doesn't re-blur a filtered layer every frame */
+.orbs{contain:strict}
+.orbs i{filter:none;opacity:.85;will-change:transform;backface-visibility:hidden}
+.orbs i:nth-child(1){background:radial-gradient(circle at center,var(--orb1) 0,transparent 68%)}
+.orbs i:nth-child(2){background:radial-gradient(circle at center,var(--orb2) 0,transparent 68%)}
+.orbs i:nth-child(3){background:radial-gradient(circle at center,var(--orb3) 0,transparent 68%)}
+@keyframes drift{to{transform:translate3d(6vmax,4vmax,0) scale(1.08)}}
+/* glass: soft top sheen + hairline edge, isolated layers */
+.glass{background-image:var(--sheen);background-color:var(--glass)}
+.list.glass,.card.glass{border-radius:var(--r-l)}
+.list.glass{overflow:hidden}
+.tabbar,.sheet{-webkit-backdrop-filter:var(--blur-strong);backdrop-filter:var(--blur-strong)}
+.sheet{background-image:var(--sheen);will-change:transform;transition:transform .42s var(--ease)}
+.scrim{transition:opacity .32s var(--ease);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.topbar.stuck{background:color-mix(in srgb,var(--bg) 62%,transparent);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);transition:background .25s var(--ease)}
+/* touch feedback: quick press, springy release */
+.btn,.chip,.iconbtn,.fab,.tabbar a,.seg button,button.item,a.item,.keypad button{transition:transform .35s var(--spring),background-color .2s var(--ease),color .2s var(--ease),box-shadow .25s var(--ease),opacity .2s}
+.btn:active,.chip:active,.iconbtn:active,.seg button:active,.keypad button:active{transform:scale(.95);transition-duration:.08s}
+.fab:active{transform:scale(.9);transition-duration:.08s}
+.tabbar a:active{transform:scale(.92);transition-duration:.08s}
+button.item:active,a.item:active{background:var(--glass-3);transition-duration:.06s}
+.seg button[aria-pressed=true],.tabbar a[aria-current=page],.chip[aria-pressed=true]{transition:background-color .3s var(--ease),color .3s var(--ease),box-shadow .3s var(--ease),transform .35s var(--spring)}
+.toggle,.toggle:after{transition-timing-function:var(--spring);transition-duration:.3s}
+.toast{transition:opacity .3s var(--ease),transform .4s var(--spring)}
+.bar>i{transition:width .8s var(--ease)}
+/* screen changes: soft rise + fade */
+.view{animation:fadein .38s var(--ease) both}
+@keyframes fadein{from{opacity:0;transform:translate3d(0,10px,0) scale(.995)}}
+.view .list.glass,.view .card,.view .hero{animation:rise .45s var(--ease) both}
+.view > :nth-child(2){animation-delay:.03s}.view > :nth-child(3){animation-delay:.06s}.view > :nth-child(4){animation-delay:.09s}.view > :nth-child(n+5){animation-delay:.12s}
+@keyframes rise{from{opacity:0;transform:translate3d(0,12px,0)}}
+.sbody,.app{-webkit-overflow-scrolling:touch}
+/* low-end / battery saver: fewer live blurs */
+@media (prefers-reduced-transparency:reduce){.glass,.sheet,.tabbar{-webkit-backdrop-filter:none;backdrop-filter:none;background-color:var(--glass-2)}}
+@media (prefers-reduced-motion:reduce){.orbs i{animation:none!important}.view *{animation:none!important}}
+/* v2 UI */
+.hero .big{font-size:44px;letter-spacing:-.035em;background:linear-gradient(120deg,var(--text) 30%,var(--accent) 140%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero:after{content:"";position:absolute;inset:auto auto -45% -25%;width:200px;height:200px;border-radius:50%;background:radial-gradient(var(--accent),transparent 70%);opacity:.18;pointer-events:none}
+.kpi{border-radius:16px;padding:10px 12px}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 4px}
+.qa{border-radius:20px;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text);text-decoration:none;transition:transform .35s var(--spring),box-shadow .25s var(--ease)}
+.qa:active{transform:scale(.94);transition-duration:.08s}
+.qi{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:18px;font-weight:800;background:var(--glass-3)}
+.qi.exp{background:var(--expense-bg);color:var(--expense)}.qi.inc{background:var(--income-bg);color:var(--income)}.qi.trf{background:var(--transfer-bg);color:var(--transfer)}
+.acard{transition:transform .35s var(--spring)}.acard:active{transform:scale(.97);transition-duration:.08s}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.tile{border-radius:var(--r-l);padding:14px;min-height:112px;display:flex;flex-direction:column;gap:4px;text-decoration:none;color:var(--text);transition:transform .35s var(--spring)}
+.tile:active{transform:scale(.96);transition-duration:.08s}
+.tile .ti{font-size:26px;margin-bottom:auto}
+.tile .tt{font-weight:700;font-size:15px}
+.tile .ts{font-size:12px;color:var(--text2);line-height:1.3}
+.tabbar a{position:relative}
+.tabbar a[aria-current=page]{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 16%,transparent),color-mix(in srgb,var(--accent-2) 12%,transparent));box-shadow:inset 0 1px 0 var(--edge)}
+.tabbar a[aria-current=page] svg{transform:translateY(-1px) scale(1.06);transition:transform .35s var(--spring)}
+.h2{letter-spacing:-.01em}
+.item .t{font-weight:600}
+@media (max-width:360px){.quick{gap:6px}.qa{min-height:68px;font-size:11.5px}.hero .big{font-size:38px}}
+.item .s{display:block}.item .meta{display:flex;flex-direction:column;gap:2px}
+.swipe .item{z-index:1;background:linear-gradient(var(--glass-2),var(--glass-2)),var(--bg)}.swipe .acts{z-index:0}

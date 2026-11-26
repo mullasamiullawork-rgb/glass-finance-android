@@ -1,4 +1,4 @@
-/* Glass Finance — data layer. Amounts are integer paise. */
+/* Finance Tracker — data layer. Amounts are integer paise. */
 (function () {
   const GF = (window.GF = window.GF || {});
   GF.hooks = GF.hooks || { afterSave: [], beforeRender: [], screens: {}, moreItems: [] };
@@ -154,7 +154,7 @@
     validate(d) {
       if (!d || typeof d !== "object") return "Not a JSON object.";
       if (typeof d.schema !== "number") return "Missing schema version.";
-      if (d.schema > SCHEMA) return "Backup is from a newer version of Glass Finance.";
+      if (d.schema > SCHEMA) return "Backup is from a newer version of Finance Tracker.";
       for (const c of ["accounts", "transactions"]) if (!Array.isArray(d[c])) return "Missing " + c + ".";
       for (const t of d.transactions) {
         if (!t.id || !["income", "expense", "transfer"].includes(t.type) || !Number.isInteger(t.amount)) return "A transaction is malformed (" + (t.id || "no id") + ").";

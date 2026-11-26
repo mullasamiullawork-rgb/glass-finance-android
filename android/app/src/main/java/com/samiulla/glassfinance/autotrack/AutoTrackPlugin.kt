@@ -195,7 +195,7 @@ class AutoTrackPlugin : Plugin() {
         call.resolve(JSObject().put("created", created).put("updated", updated).put("duplicates", dup))
     }
 
-    /** UPI payment started from Glass Finance (UPI deep-link intent). The app's reply is not proof of settlement. */
+    /** UPI payment started from Finance Tracker (UPI deep-link intent). The app's reply is not proof of settlement. */
     @PluginMethod
     fun payUpi(call: PluginCall) {
         val vpa = call.getString("vpa") ?: return call.reject("vpa required")
@@ -205,7 +205,7 @@ class AutoTrackPlugin : Plugin() {
             .appendQueryParameter("pn", call.getString("name") ?: vpa)
             .appendQueryParameter("am", amount)
             .appendQueryParameter("cu", "INR")
-            .appendQueryParameter("tn", call.getString("note") ?: "Glass Finance")
+            .appendQueryParameter("tn", call.getString("note") ?: "Finance Tracker")
             .appendQueryParameter("tr", "GF" + System.currentTimeMillis())
             .build()
         val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -232,7 +232,7 @@ class AutoTrackPlugin : Plugin() {
         val p = ParsedPayment(
             amountPaise = amountPaise, direction = Direction.DEBIT, status = status, counterparty = Text.cleanName(call.getString("name") ?: call.getString("vpa")),
             upiRef = kv["approvalrefno"]?.takeIf { it.matches(Regex("[0-9]{12}")) } ?: kv["responsecode"]?.takeIf { it.matches(Regex("[0-9]{12}")) },
-            txnId = kv["txnid"]?.ifBlank { null }, appName = "UPI (from Glass Finance)", sourcePackage = context.packageName,
+            txnId = kv["txnid"]?.ifBlank { null }, appName = "UPI (from Finance Tracker)", sourcePackage = context.packageName,
             sourceType = SourceType.APP_INITIATED_INTENT, occurredAt = System.currentTimeMillis(), confidence = 60,
         )
         repo.executor.execute {
@@ -285,7 +285,7 @@ class AutoTrackPlugin : Plugin() {
     @PluginMethod
     fun authenticateBiometric(call: PluginCall) {
         val act = activity ?: return call.reject("No active activity")
-        val title = call.getString("title") ?: "Unlock Glass Finance"
+        val title = call.getString("title") ?: "Unlock Finance Tracker"
         val subtitle = call.getString("subtitle") ?: "Verify your identity to continue"
         act.runOnUiThread {
             val executor = ContextCompat.getMainExecutor(context)
@@ -312,10 +312,10 @@ class AutoTrackPlugin : Plugin() {
 
     @PluginMethod
     fun exportPdfSummary(call: PluginCall) = bg(call) {
-        val title = call.getString("title") ?: "Glass Finance Summary"
+        val title = call.getString("title") ?: "Finance Tracker Summary"
         val subtitle = call.getString("subtitle") ?: ""
         val lines = call.getArray("lines") ?: JSArray()
-        val fileName = (call.getString("fileName") ?: "GlassFinance-Summary.pdf").replace(Regex("[^A-Za-z0-9._-]"), "_")
+        val fileName = (call.getString("fileName") ?: "FinanceTracker-Summary.pdf").replace(Regex("[^A-Za-z0-9._-]"), "_")
         val doc = PdfDocument()
         val titlePaint = Paint().apply { color = Color.rgb(15, 23, 42); textSize = 18f; isFakeBoldText = true; isAntiAlias = true }
         val subPaint = Paint().apply { color = Color.rgb(100, 116, 139); textSize = 11f; isAntiAlias = true }

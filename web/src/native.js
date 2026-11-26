@@ -1,4 +1,4 @@
-/* Glass Finance — native Android bridge (Capacitor). Everything here is a no-op in a plain browser. */
+/* Finance Tracker — native Android bridge (Capacitor). Everything here is a no-op in a plain browser. */
 (function () {
   const GF = window.GF;
   const Cap = window.Capacitor;

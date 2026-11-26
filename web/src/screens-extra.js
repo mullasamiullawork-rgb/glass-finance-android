@@ -1,4 +1,4 @@
-/* Glass Finance — Savings, Recurring (engine + screen), Insights, offline Assistant, global Search,
+/* Finance Tracker — Savings, Recurring (engine + screen), Insights, offline Assistant, global Search,
    PIN lock, encrypted backup, PDF summary, notification/security settings, providers, self-test. */
 (function () {
   const GF = window.GF, D = GF.D, C = GF.calc, esc = GF.esc, $ = GF.$, $$ = GF.$$;
@@ -36,13 +36,14 @@
   });
 
   /* ================= RECURRING ================= */
-  const FREQ = { daily: "Daily", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly", custom: "Custom" };
+  const FREQ = { daily: "Daily", weekly: "Weekly", monthly: "Monthly", quarterly: "Every 3 months", halfyearly: "Every 6 months", yearly: "Yearly", custom: "Custom" };
   GF.nextRecurring = (iso, r) => {
     const n = Math.max(1, r.interval || 1);
     if (r.frequency === "daily") return D.addDays(iso, 1);
     if (r.frequency === "weekly") return D.addDays(iso, 7);
-    if (r.frequency === "custom") return r.unit === "months" ? GF.nextDue(iso, "monthly").replace(/^.{7}/, D.addMonths(D.month(iso), n)) : D.addDays(iso, (r.unit === "weeks" ? 7 : 1) * n);
-    return GF.nextDue(iso, r.frequency === "yearly" ? "yearly" : "monthly");
+    const anchor = r.anchorDay || +String(r.nextDate || iso).slice(8, 10);
+    if (r.frequency === "custom") return r.unit === "months" ? GF.nextDue(iso, n, anchor) : D.addDays(iso, (r.unit === "weeks" ? 7 : 1) * n);
+    return GF.nextDue(iso, GF.REPEAT_MONTHS[r.frequency] ? r.frequency : "monthly", anchor);
   };
   /** Posts due auto-post occurrences up to today. Idempotent: each occurrence has a deterministic id. */
   GF.runRecurring = (data = GF.store.data, today = D.today()) => {
@@ -97,7 +98,7 @@
       <div class="item"><span class="meta"><span class="t">Active</span></span><button class="toggle" role="switch" id="re-act" aria-checked="${s.active}" aria-label="Active"></button></div></div>
       <div class="errbox" id="re-err" hidden></div><button class="btn primary block" id="re-save">${ex ? "Save" : "Add recurring"}</button>${ex ? `<button class="btn danger block" id="re-del" style="margin-top:8px">${GF.icon("trash")} Delete</button>` : ""}`;
     GF.closeAll(() => GF.sheet({ title: ex ? "Edit recurring" : "New recurring", body: draw(), mount(sh) {
-      const read = () => { s.name = $("#re-name", sh).value.trim(); s.amount = GF.toPaise($("#re-amt", sh).value.replace(/,/g, "")); s.nextDate = $("#re-next", sh).value || s.nextDate; s.endDate = $("#re-end", sh).value; const i = $("#re-int", sh); if (i) s.interval = Math.max(1, parseInt(i.value) || 1); };
+      const read = () => { s.name = $("#re-name", sh).value.trim(); s.amount = GF.toPaise($("#re-amt", sh).value.replace(/,/g, "")); s.nextDate = $("#re-next", sh).value || s.nextDate; if (!ex || s.nextDate !== ex.nextDate) s.anchorDay = +s.nextDate.slice(8, 10); s.endDate = $("#re-end", sh).value; const i = $("#re-int", sh); if (i) s.interval = Math.max(1, parseInt(i.value) || 1); };
       const wire = () => {
         const pick = (id, key, redraw) => $$(`#${id} [data-v]`, sh).forEach((b) => (b.onclick = () => { read(); s[key] = b.dataset.v; if (redraw) { $(".sbody", sh).innerHTML = draw(); wire(); } else $$(`#${id} [data-v]`, sh).forEach((x) => x.setAttribute("aria-pressed", x === b)); }));
         pick("re-type", "type", true); pick("re-freq", "frequency", true); pick("re-unit", "unit"); pick("re-cat", "categoryId"); pick("re-acc", "accountId"); pick("re-to", "toAccountId");
@@ -286,7 +287,7 @@
         const bioBtn = document.createElement("button");
         bioBtn.className = "btn glass";
         bioBtn.textContent = "👆 Unlock with Biometrics";
-        const tryBio = () => GF.native.AutoTrack.authenticateBiometric({ title: "Unlock Glass Finance", subtitle: "Verify your identity to view your finances" })
+        const tryBio = () => GF.native.AutoTrack.authenticateBiometric({ title: "Unlock Finance Tracker", subtitle: "Verify your identity to view your finances" })
           .then((r) => { if (r && r.authenticated && locked) { el.remove(); locked = false; resolve(); } })
           .catch(() => {});
         bioBtn.onclick = tryBio;
@@ -312,7 +313,7 @@
   GF.acts.encBackup = async () => { const p = await askPass("Encrypted backup", true); if (!p) return; const txt = await GF.encryptBackup({ ...GF.store.data, exportedAt: new Date().toISOString() }, p); GF.download("glass-finance-" + D.today() + ".gfbackup", txt, "application/octet-stream"); };
   GF.acts.encRestore = async () => {
     const f = await GF.readFile(".gfbackup,.json,application/octet-stream,application/json"); if (!f) return;
-    let obj; try { const j = JSON.parse(f.text); if (j.format !== "glassfinance-encrypted") return GF.toast("Not an encrypted Glass Finance backup — use Restore."); } catch (e) { return GF.toast("Unreadable file."); }
+    let obj; try { const j = JSON.parse(f.text); if (j.format !== "glassfinance-encrypted") return GF.toast("Not an encrypted Finance Tracker backup — use Restore."); } catch (e) { return GF.toast("Unreadable file."); }
     const p = await askPass("Backup password"); if (!p) return;
     try { obj = await GF.decryptBackup(f.text, p); } catch (e) { return GF.toast("Wrong password or damaged file."); }
     const err = GF.store.validate(obj); if (err) return GF.toast(err);
@@ -344,12 +345,12 @@
         }),
       ];
       const sub = (from ? D.short(from) + " " + from.slice(0, 4) + " to " + D.short(to) + " " + to.slice(0, 4) : "All time") + " · Generated " + new Date().toLocaleString("en-IN");
-      GF.native.AutoTrack.exportPdfSummary({ title: "Glass Finance – " + label, subtitle: sub, fileName: "GlassFinance-" + label.replace(/\s+/g, "-") + ".pdf", lines })
+      GF.native.AutoTrack.exportPdfSummary({ title: "Finance Tracker – " + label, subtitle: sub, fileName: "FinanceTracker-" + label.replace(/\s+/g, "-") + ".pdf", lines })
         .then(() => GF.toast("PDF summary ready to save or share"))
         .catch(() => {});
       return;
     }
-    const html = `<div id="print-root"><h1>Glass Finance — ${esc(label)}</h1><p>${from ? D.short(from) + " " + from.slice(0, 4) + " to " + D.short(to) + " " + to.slice(0, 4) : "All time"} · generated ${new Date().toLocaleString("en-IN")}</p>
+    const html = `<div id="print-root"><h1>Finance Tracker — ${esc(label)}</h1><p>${from ? D.short(from) + " " + from.slice(0, 4) + " to " + D.short(to) + " " + to.slice(0, 4) : "All time"} · generated ${new Date().toLocaleString("en-IN")}</p>
       <table><tr><th>Income</th><th>Expenses</th><th>Saved</th><th>Savings rate</th></tr><tr><td>${F(T.income)}</td><td>${F(T.expense)}</td><td>${F(T.savings)}</td><td>${T.rate == null ? "—" : GF.pct(T.rate)}</td></tr></table>
       <h2>Spending by category</h2><table><tr><th>Category</th><th>Amount</th><th>Share</th></tr>${C.byCategory(d.transactions, from, to).map((r) => `<tr><td>${esc(GF.cat(r.categoryId).name)}</td><td>${F(r.amount)}</td><td>${T.expense ? GF.pct((r.amount / T.expense) * 100) : "—"}</td></tr>`).join("")}</table>
       <h2>Account balances (ledger, today)</h2><table><tr><th>Account</th><th>Balance</th></tr>${d.accounts.filter((a) => !a.archived).map((a) => `<tr><td>${esc(a.name)}</td><td>${F(bal[a.id])}</td></tr>`).join("")}</table>
@@ -371,13 +372,13 @@
     <h2 class="h2">Security & privacy</h2><div class="list glass">${it("PIN lock", s.pin ? "On · asks after 1 minute away" : "Off", "", "pinSetup")}${it("Encrypted backup", "Password-protected AES-256 file", "", "encBackup")}${it("Restore encrypted backup", "", "", "encRestore")}${it("PDF summary", "Print or save a report", "", "pdfSummary")}</div>
     <p class="tiny muted" style="margin:6px 4px">PIN lock is a privacy lock on this app, not disk encryption. Android's device encryption protects data at rest. Data never leaves the phone unless you export or share it. Screenshots are blocked in the Android app.</p>
     <h2 class="h2">Coming later</h2><div class="list glass">${GF.providers.list().map((p) => it(p.name, p.note, "<span class='small muted'>Not connected</span>")).join("")}</div>
-    <h2 class="h2">About</h2><div class="list glass">${it("Run self-test", "Checks calculations, transfers, recurring, bills and formatting", "", "selfTest")}${it("Glass Finance 1.0", "Made for Sami · data stays on this device")}</div>`;
+    <h2 class="h2">About</h2><div class="list glass">${it("Run self-test", "Checks calculations, transfers, recurring, bills and formatting", "", "selfTest")}${it("Finance Tracker 1.0", "Made for Sami · data stays on this device")}</div>`;
   });
   GF.acts.goAuto = () => GF.go("#/auto");
   document.addEventListener("click", async (e) => {
     const t = e.target.closest("#st-billrem,#st-budal"); if (!t) return;
     const s = GF.store.data.settings;
-    if (t.id === "st-billrem") { const on = !s.billReminders; if (on && GF.requestNotifyPermission && !(await GF.requestNotifyPermission())) return GF.toast("Notifications are blocked for Glass Finance in Android settings."); if (on && !GF.native?.isNative && "Notification" in window && Notification.permission === "default") await Notification.requestPermission(); GF.store.setSettings({ billReminders: on }); GF.scheduleBillReminders && GF.scheduleBillReminders(); }
+    if (t.id === "st-billrem") { const on = !s.billReminders; if (on && GF.requestNotifyPermission && !(await GF.requestNotifyPermission())) return GF.toast("Notifications are blocked for Finance Tracker in Android settings."); if (on && !GF.native?.isNative && "Notification" in window && Notification.permission === "default") await Notification.requestPermission(); GF.store.setSettings({ billReminders: on }); GF.scheduleBillReminders && GF.scheduleBillReminders(); }
     else GF.store.setSettings({ budgetAlerts: s.budgetAlerts === false });
   });
   GF.acts.pinSetup = () => {
@@ -439,6 +440,9 @@
     ok("Recurring posts missed dates once (idempotent)", n1 === 3 && n2 === 0 && data.transactions.length === 3);
     ok("Recurring month-end safe", GF.nextDue("2026-01-31", "monthly") === "2026-02-28");
     ok("Bill rolls to next due date", GF.nextDue("2026-11-04", "monthly") === "2026-12-04");
+    ok("Every 6 months bill", GF.nextDue("2026-11-26", "halfyearly") === "2027-05-26" && GF.nextDue("2027-05-26", "halfyearly") === "2027-11-26");
+    ok("Every 3 months bill", GF.nextDue("2026-11-30", "quarterly") === "2027-02-28" && GF.nextDue("2027-02-28", "quarterly", 30) === "2027-05-30");
+    ok("Month-end bills keep their day", GF.nextDue(GF.nextDue("2026-01-31", "monthly", 31), "monthly", 31) === "2026-03-31");
     const h = GF.hidden; GF.hidden = false;
     ok("INR formatting", [50000, 125000, 2500000, 15000000].map((v) => GF.fmt(v)).join("|") === "₹500|₹1,250|₹25,000|₹1,50,000");
     GF.hidden = h;

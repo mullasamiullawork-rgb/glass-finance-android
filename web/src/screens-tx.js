@@ -1,4 +1,4 @@
-/* Glass Finance — Transactions: search, filter, sort, day groups, detail, delete + undo. */
+/* Finance Tracker — Transactions: search, filter, sort, day groups, detail, delete + undo. */
 (function () {
   const GF = window.GF, D = GF.D, esc = GF.esc, $ = GF.$, $$ = GF.$$;
   const blank = () => ({ q: "", type: "all", cats: [], accs: [], pms: [], from: "", to: "", min: "", max: "", sort: "newest" });

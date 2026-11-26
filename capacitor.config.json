@@ -1,6 +1,6 @@
 {
   "appId": "com.samiulla.glassfinance",
-  "appName": "Glass Finance",
+  "appName": "Finance Tracker",
   "webDir": "www",
   "android": { "allowMixedContent": false, "captureInput": true, "webContentsDebuggingEnabled": false },
   "plugins": {

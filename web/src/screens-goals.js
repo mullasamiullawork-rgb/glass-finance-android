@@ -1,4 +1,4 @@
-/* Glass Finance — Goals: progress rings, create/edit/delete, add money (optionally as a real transfer to Savings). */
+/* Finance Tracker — Goals: progress rings, create/edit/delete, add money (optionally as a real transfer to Savings). */
 (function () {
   const GF = window.GF, D = GF.D, C = GF.calc, esc = GF.esc, $ = GF.$, $$ = GF.$$;
   const ICONS = ["🎯", "💻", "📱", "🛟", "✈️", "🎮", "🚲", "🎓", "🏠", "🎁"];

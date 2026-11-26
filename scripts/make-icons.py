@@ -64,7 +64,7 @@ def splash(W, H):
     img = orbs((W, H)).convert("RGBA"); s = int(min(W, H) * 0.95)
     mk = glass_mark(s); img.alpha_composite(mk, ((W - s) // 2, (H - s) // 2 - int(min(W, H) * 0.06)))
     d = ImageDraw.Draw(img); f = ImageFont.truetype(FONT, int(min(W, H) * 0.06))
-    d.text((W / 2, H / 2 + s * 0.24), "Glass Finance", font=f, fill=(255, 255, 255, 235), anchor="mm")
+    d.text((W / 2, H / 2 + s * 0.24), "Finance Tracker", font=f, fill=(255, 255, 255, 235), anchor="mm")
     return img.convert("RGB")
 sizes = {"mdpi": (320, 480), "hdpi": (480, 800), "xhdpi": (720, 1280), "xxhdpi": (960, 1600), "xxxhdpi": (1280, 1920)}
 for k, (w, h) in sizes.items():

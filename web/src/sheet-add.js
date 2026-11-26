@@ -1,4 +1,4 @@
-/* Glass Finance — Quick Add / Edit transaction sheet. */
+/* Finance Tracker — Quick Add / Edit transaction sheet. */
 (function () {
   const GF = window.GF, D = GF.D, esc = GF.esc, $ = GF.$, $$ = GF.$$;
   const TYPES = [["income", "↑ Income"], ["expense", "↓ Expense"], ["transfer", "⇄ Transfer"]];

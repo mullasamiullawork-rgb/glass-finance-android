@@ -1,21 +1,25 @@
-/* Glass Finance — Bills: due-state tabs, mark as paid (real expense + roll to next due date), add/edit/delete. */
+/* Finance Tracker — Bills: due-state tabs, mark as paid (real expense + roll to next due date), add/edit/delete. */
 (function () {
   const GF = window.GF, D = GF.D, C = GF.calc, esc = GF.esc, $ = GF.$, $$ = GF.$$;
-  const REPEAT = { none: "One-time", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
+  const REPEAT = { none: "One-time", weekly: "Weekly", monthly: "Monthly", quarterly: "Every 3 months", halfyearly: "Every 6 months", yearly: "Yearly" };
+  GF.REPEAT_MONTHS = { monthly: 1, quarterly: 3, halfyearly: 6, yearly: 12 };
   const TABS = [["upcoming", "Upcoming"], ["due", "Due today"], ["overdue", "Overdue"], ["paid", "Paid"]];
   const BADGE = { upcoming: "", due: "warning", overdue: "over", paid: "ok" };
   let tab = "upcoming";
   const amtOk = (v) => { v = String(v).trim().replace(/,/g, ""); const n = parseFloat(v); return v && !isNaN(n) && n > 0 ? GF.toPaise(v) : 0; };
 
-  /** Next due date for a recurring bill, keeping the day of month where it exists. */
-  GF.nextDue = (iso, repeat) => {
+  /** Next due date for a recurring bill. `anchor` is the bill's original day of month, so
+   *  31 Jan → 28 Feb → 31 Mar instead of drifting to the 28th. `repeat` may also be a number of months. */
+  GF.nextDue = (iso, repeat, anchor) => {
     if (repeat === "weekly") return D.addDays(iso, 7);
-    const n = repeat === "yearly" ? 12 : repeat === "monthly" ? 1 : 0;
+    const n = typeof repeat === "number" ? repeat : GF.REPEAT_MONTHS[repeat] || 0;
     if (!n) return iso;
     const mk = D.addMonths(D.month(iso), n), end = D.monthEnd(mk);
-    const day = mk + "-" + iso.slice(8, 10);
+    const dd = String(Math.min(31, Math.max(1, anchor || +iso.slice(8, 10)))).padStart(2, "0");
+    const day = mk + "-" + dd;
     return day > end ? end : day;
   };
+  const anchorOf = (b) => b.anchorDay || +String(b.dueDate).slice(8, 10);
   const isPaidRow = (b) => b.paid || !!b.lastPaid;
   const stateOf = (b) => C.billStatus(b).state;
 
@@ -63,7 +67,7 @@
     GF.closeAll(() => GF.sheet({
       title: "Pay " + b.name,
       body: `<p class="amt" style="font-size:28px;font-weight:700;margin:0 4px 4px">${GF.fmt(b.amount)}</p>
-      <p class="small muted" style="margin:0 4px 12px">Due ${D.short(b.dueDate)}. Records an expense${rec ? ` and moves the bill to ${D.short(GF.nextDue(b.dueDate, b.repeat))}` : ""}.</p>
+      <p class="small muted" style="margin:0 4px 12px">Due ${D.short(b.dueDate)}. Records an expense${rec ? ` and moves the bill to ${D.short(GF.nextDue(b.dueDate, b.repeat, anchorOf(b)))}` : ""}.</p>
       <label class="field"><span>Pay from</span></label><div class="chips" id="bp-acc" style="margin-bottom:12px">${accs.map((a) => `<button class="chip" data-v="${a.id}" aria-pressed="${a.id === accId}">${a.icon} ${esc(a.name)}</button>`).join("")}</div>
       <label class="field"><span>Paid on</span><input class="input" type="date" id="bp-date" value="${D.today()}" max="${D.today()}"></label>
       <div class="errbox" id="bp-err" hidden></div>
@@ -78,7 +82,7 @@
           GF.closeAll(() => {
             GF.store.upsert("transactions", tx, true);
             b.lastPaid = date; b.lastTxId = tx.id; b.accountId = accId;
-            if (rec) b.dueDate = GF.nextDue(b.dueDate, b.repeat); else { b.paid = true; b.paidOn = date; }
+            if (rec) { b.anchorDay = anchorOf(b); b.dueDate = GF.nextDue(b.dueDate, b.repeat, b.anchorDay); } else { b.paid = true; b.paidOn = date; }
             GF.store.upsert("bills", b);
             (GF.hooks.afterTxSave || []).forEach((f) => f(tx));
             GF.haptic(12);
@@ -100,7 +104,7 @@
       body: `<label class="field"><span>Name</span><input class="input" id="bl-name" value="${esc(s.name)}" placeholder="e.g. Electricity" maxlength="40" autofocus></label>
       <label class="field"><span>Amount (₹)</span><input class="input amt" id="bl-amt" inputmode="decimal" value="${s.amount ? GF.fromPaise(s.amount) : ""}" placeholder="e.g. 799"></label>
       <label class="field"><span>Due date</span><input class="input" type="date" id="bl-date" value="${s.dueDate}"></label>
-      <label class="field"><span>Repeats</span></label>${pick("bl-rep", Object.entries(REPEAT).map(([k, l]) => [k, l, (s.repeat || "none") === k]))}
+      <label class="field"><span>Repeats</span></label>${pick("bl-rep", Object.entries(REPEAT).map(([k, l]) => [k, l, (s.repeat || "none") === k]))}<p class="tiny muted" id="bl-hint" style="margin:-4px 4px 12px" aria-live="polite"></p>
       <label class="field"><span>Category</span></label>${pick("bl-cat", cats.map((c) => [c.id, c.icon + " " + esc(c.name), s.categoryId === c.id]))}
       <label class="field"><span>Usually paid from</span></label>${pick("bl-acc", accs.map((a) => [a.id, a.icon + " " + esc(a.name), s.accountId === a.id]))}
       ${ex && ex.paid ? `<p class="small muted" style="margin:0 4px 12px">Marked paid. Saving with a new due date makes it unpaid again.</p>` : ""}
@@ -108,7 +112,12 @@
       <button class="btn primary block" id="bl-save">${ex ? "Save changes" : "Add bill"}</button>
       ${ex ? `<button class="btn block" id="bl-del" style="margin-top:10px;color:var(--expense)">${GF.icon("trash")} Delete bill</button>` : ""}`,
       mount(sh) {
-        [["rep", "repeat"], ["cat", "categoryId"], ["acc", "accountId"]].forEach(([k, f]) => $$(`#bl-${k} .chip`, sh).forEach((b) => (b.onclick = () => { s[f] = b.dataset.v; $$(`#bl-${k} .chip`, sh).forEach((x) => x.setAttribute("aria-pressed", x === b)); })));
+        const hint = () => { const nd = $("#bl-date", sh).value, r = s.repeat || "none", h = $("#bl-hint", sh); if (!h) return;
+          if (r === "none" || !/^\d{4}-\d{2}-\d{2}$/.test(nd)) { h.textContent = r === "none" ? "Paid once, then moves to Paid." : ""; return; }
+          const a = +nd.slice(8, 10), d1 = GF.nextDue(nd, r, a), d2 = GF.nextDue(d1, r, a);
+          h.textContent = `Then due ${D.short(d1)} ${d1.slice(0, 4)}, ${D.short(d2)} ${d2.slice(0, 4)}…`; };
+        [["rep", "repeat"], ["cat", "categoryId"], ["acc", "accountId"]].forEach(([k, f]) => $$(`#bl-${k} .chip`, sh).forEach((b) => (b.onclick = () => { s[f] = b.dataset.v; $$(`#bl-${k} .chip`, sh).forEach((x) => x.setAttribute("aria-pressed", x === b)); hint(); })));
+        $("#bl-date", sh).addEventListener("input", hint); hint();
         $("#bl-save", sh).onclick = () => {
           const e = $("#bl-err", sh), fail = (m) => { e.hidden = false; e.textContent = m; GF.haptic(30); };
           s.name = $("#bl-name", sh).value.trim();
@@ -118,6 +127,7 @@
           if (!s.amount) return fail("Amount must be a number above zero.");
           if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) return fail("Choose a due date.");
           if (ex && ex.paid && nd !== ex.dueDate) { s.paid = false; delete s.paidOn; }
+          if (!ex || nd !== ex.dueDate) s.anchorDay = +nd.slice(8, 10);
           s.dueDate = nd;
           GF.closeAll(() => { GF.store.upsert("bills", s); GF.toast(ex ? "Bill updated" : "Bill added"); });
         };

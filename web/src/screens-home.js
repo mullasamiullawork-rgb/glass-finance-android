@@ -1,4 +1,4 @@
-/* Glass Finance — Home and More screens. */
+/* Finance Tracker — Home and More screens. */
 (function () {
   const GF = window.GF, D = GF.D, C = GF.calc, esc = GF.esc;
 
@@ -13,6 +13,8 @@
     }
   };
   GF.acts.keepExploring = () => { GF.store.data.meta.sampleBannerDismissed = true; GF.store.save(); };
+  GF.acts.quickAdd = (el) => { GF.haptic(); GF.openAdd({ type: el.dataset.v }); };
+  GF.dueIn = (iso) => { const n = D.diffDays(D.today(), iso); return n < 0 ? `${-n} day${n === -1 ? "" : "s"} late` : n === 0 ? "today" : n === 1 ? "tomorrow" : `in ${n} days`; };
   GF.acts.toggleHide = () => { GF.hidden = !GF.hidden; GF.haptic(); GF.render(); };
 
   const greeting = () => { const h = new Date().getHours(); return h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; };
@@ -46,6 +48,12 @@
         <div class="between small muted" style="margin-top:12px"><span>${D.monthLabel(mk)} · savings rate <b class="amt" style="color:var(--text)">${m.rate == null ? "—" : GF.pct(m.rate)}</b></span></div>
         <div class="between tiny muted" style="margin-top:4px"><span>All time: <span class="inc">↑ ${GF.fmt(all.income)}</span> · <span class="exp">↓ ${GF.fmt(all.expense)}</span></span></div>
       </section>
+      <nav class="quick" aria-label="Quick actions">
+        <button class="qa glass" data-act="quickAdd" data-v="expense"><span class="qi exp" aria-hidden="true">↓</span><span>Expense</span></button>
+        <button class="qa glass" data-act="quickAdd" data-v="income"><span class="qi inc" aria-hidden="true">↑</span><span>Income</span></button>
+        <button class="qa glass" data-act="quickAdd" data-v="transfer"><span class="qi trf" aria-hidden="true">⇄</span><span>Transfer</span></button>
+        <a class="qa glass" href="#/bills"><span class="qi" aria-hidden="true">🧾</span><span>Bills</span></a>
+      </nav>
       <h2 class="h2">Accounts <a href="#/accounts">See all</a></h2>
       <div class="carousel" role="list">
         ${accts.map((a) => `<button role="listitem" class="acard glass" data-act="nav" data-to="#/account/${a.id}"><span class="between"><span class="ico">${a.icon}</span>${a.isSample ? '<span class="demo">Demo</span>' : ""}</span><span><span class="small muted">${esc(a.name)}</span><br><b class="amt ${bal[a.id] < 0 ? "exp" : ""}">${GF.fmt(bal[a.id])}</b></span></button>`).join("")}
@@ -85,9 +93,9 @@
     tab: "more",
     title: () => "More",
     render() {
-      const items = [...GF.MORE, ...GF.hooks.moreItems];
-      return `${GF.topbar("More")}<div class="list glass">${items.map(([id, ic, t, s]) => `<a class="item" href="#/${id}" style="text-decoration:none;color:inherit"><span class="cat" style="background:var(--glass-3)">${ic}</span><span class="meta"><span class="t">${t}</span><span class="s">${s}</span></span><span class="chev">${GF.icon("chev")}</span></a>`).join("")}</div>
-      <p class="tiny muted" style="text-align:center">Glass Finance · data stays on this device${GF.store.persistent ? "" : " (not saved: storage unavailable)"}</p>`;
+      const items = [...GF.hooks.moreItems, ...GF.MORE];
+      return `${GF.topbar("More")}<div class="tiles">${items.map(([id, ic, t, sub]) => `<a class="tile glass" href="#/${id}"><span class="ti" aria-hidden="true">${ic}</span><span class="tt">${esc(t)}</span><span class="ts">${esc(sub || "")}</span></a>`).join("")}</div>
+      <p class="tiny muted" style="text-align:center">Finance Tracker · data stays on this device${GF.store.persistent ? "" : " (not saved: storage unavailable)"}</p>`;
     },
   });
 

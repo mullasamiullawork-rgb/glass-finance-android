@@ -1,4 +1,4 @@
-/* Glass Finance — automatic tracking: mirrors reconciled native detections into the ledger.
+/* Finance Tracker — automatic tracking: mirrors reconciled native detections into the ledger.
    The native side (Kotlin) parses notifications and reconciles; this side only mirrors, idempotently by id. */
 (function () {
   const GF = window.GF, D = GF.D;
@@ -9,7 +9,7 @@
   A.KIND = { EXPENSE: "Expense", INCOME: "Money received", REFUND: "Refund", TRANSFER: "Transfer", REVERSAL: "Reversal", UNKNOWN: "Unknown" };
   A.STATUS = { SUCCESS: "Successful", PENDING: "Pending", FAILED: "Failed", REVERSED: "Reversed" };
   A.VERIF = { PROVISIONAL: "Provisional · app notification only", CONFIRMED: "Confirmed · bank alert or 2 sources", BANK_VERIFIED: "Bank-verified · statement" };
-  A.SOURCE = { UPI_APP_NOTIFICATION: "UPI app notification", BANK_SMS_NOTIFICATION: "Bank SMS alert", STATEMENT_IMPORT: "Bank statement import", ACCOUNT_AGGREGATOR: "Account Aggregator", APP_INITIATED_INTENT: "Paid from Glass Finance" };
+  A.SOURCE = { UPI_APP_NOTIFICATION: "UPI app notification", BANK_SMS_NOTIFICATION: "Bank SMS alert", STATEMENT_IMPORT: "Bank statement import", ACCOUNT_AGGREGATOR: "Account Aggregator", APP_INITIATED_INTENT: "Paid from Finance Tracker" };
 
   /** Which account an automatic record belongs to: an account whose last digits match, else the default for automatic tracking. */
   A.accountFor = (it) => {

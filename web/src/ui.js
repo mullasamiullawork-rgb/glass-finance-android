@@ -1,4 +1,4 @@
-/* Glass Finance — UI kit: icons, router, sheets, toasts, confirm, swipe rows, helpers. */
+/* Finance Tracker — UI kit: icons, router, sheets, toasts, confirm, swipe rows, helpers. */
 (function () {
   const GF = window.GF;
   const $ = (s, r = document) => r.querySelector(s);
@@ -246,7 +246,7 @@
     lastRoute = key;
     const tab = def.tab || "more";
     $$(".tabbar a").forEach((a) => a.setAttribute("aria-current", a.dataset.tab === tab ? "page" : "false"));
-    document.title = (def.title ? def.title(param) + " · " : "") + "Glass Finance";
+    document.title = (def.title ? def.title(param) + " · " : "") + "Finance Tracker";
     $("#storebanner").hidden = GF.store.persistent;
   };
   window.addEventListener("hashchange", () => { if (!stack.length) GF.render(); });

@@ -1,4 +1,4 @@
-/* Glass Finance — boot. Hooks for later phases:
+/* Finance Tracker — boot. Hooks for later phases:
    GF.hooks.boot (fns run before first render, e.g. PIN lock; return a Promise to wait),
    GF.screen(name, def) to replace a More placeholder (goals, savings, bills, recurring, insights, assistant, search),
    GF.hooks.settingsSections, GF.hooks.moreItems, GF.hooks.afterSave, GF.hooks.afterTxSave, GF.migrations[n]. */

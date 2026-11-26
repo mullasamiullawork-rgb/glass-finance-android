@@ -1,4 +1,4 @@
-/* Glass Finance — calculations, dates and formatting. dateTime is local "YYYY-MM-DDTHH:mm". */
+/* Finance Tracker — calculations, dates and formatting. dateTime is local "YYYY-MM-DDTHH:mm". */
 (function () {
   const GF = window.GF;
   const pad = (n) => String(n).padStart(2, "0");

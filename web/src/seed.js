@@ -1,4 +1,4 @@
-/* Glass Finance — realistic Indian sample data for the last 6 months. Everything isSample. */
+/* Finance Tracker — realistic Indian sample data for the last 6 months. Everything isSample. */
 (function () {
   const GF = window.GF;
   GF.seed = function (data) {

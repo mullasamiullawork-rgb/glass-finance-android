@@ -74,7 +74,7 @@ jobs:
         run: |
           APK=android/app/build/outputs/apk/release/app-release.apk
           test -f "$APK" || { echo "Signed APK missing"; exit 1; }
-          cp "$APK" "GlassFinance-${{ steps.v.outputs.version }}.apk"
+          cp "$APK" "FinanceTracker-${{ steps.v.outputs.version }}.apk"
 
       - name: Remove keystore
         if: always()
@@ -84,6 +84,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.v.outputs.version }}
-          name: Glass Finance ${{ steps.v.outputs.version }}
-          files: GlassFinance-${{ steps.v.outputs.version }}.apk
+          name: Finance Tracker ${{ steps.v.outputs.version }}
+          files: FinanceTracker-${{ steps.v.outputs.version }}.apk
           generate_release_notes: true

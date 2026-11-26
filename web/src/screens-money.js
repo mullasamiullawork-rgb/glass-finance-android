@@ -1,4 +1,4 @@
-/* Glass Finance — Accounts and Budget. */
+/* Finance Tracker — Accounts and Budget. */
 (function () {
   const GF = window.GF, D = GF.D, C = GF.calc, esc = GF.esc, $ = GF.$, $$ = GF.$$;
   const ICONS = ["💵", "🏦", "🐷", "📱", "💳", "👛", "🪙", "🏧", "💼", "🎓"];
@@ -35,7 +35,7 @@
       <section class="hero glass"><div class="lbl">Balance${a.archived ? " · Archived" : ""}</div><div class="big amt ${bal < 0 ? "exp" : ""}">${GF.fmt(bal)}</div>
       <div class="kpis"><div class="kpi"><span>Opening</span><b class="amt">${GF.fmt(a.opening || 0)}</b></div><div class="kpi"><span>↑ Money in</span><b class="amt inc">+${GF.fmt(inn)}</b></div><div class="kpi"><span>↓ Money out</span><b class="amt exp">−${GF.fmt(out)}</b></div></div></section>
       <div class="list glass" style="margin-bottom:12px">
-        <div class="item"><span class="meta"><span class="t">Calculated ledger balance</span><span class="s">Opening + money in − money out, from transactions in Glass Finance</span></span><span class="r amt">${GF.fmt(bal)}</span></div>
+        <div class="item"><span class="meta"><span class="t">Calculated ledger balance</span><span class="s">Opening + money in − money out, from transactions in Finance Tracker</span></span><span class="r amt">${GF.fmt(bal)}</span></div>
         <button class="item" data-act="accountActual" data-id="${a.id}"><span class="meta"><span class="t">Actual bank balance</span><span class="s">${a.actualBalance != null ? "You entered it on " + D.short(a.actualBalanceAt.slice(0, 10)) + (a.actualBalance !== bal ? " · differs by " + GF.fmt(Math.abs(a.actualBalance - bal)) : " · matches") : "Tap to enter what your bank app shows"}</span></span><span class="r amt">${a.actualBalance != null ? GF.fmt(a.actualBalance) : "—"}</span></button>
         <div class="item"><span class="meta"><span class="t">Last synced bank balance</span><span class="s">${a.syncedBalance != null ? "From a " + esc(a.syncedSource || "bank alert") + ", " + D.short(a.syncedAt.slice(0, 10)) + " " + D.time(a.syncedAt) : "Appears when a bank alert or statement with a balance is detected. No live bank connection."}</span></span><span class="r amt">${a.syncedBalance != null ? GF.fmt(a.syncedBalance) : "—"}</span></div>
       </div>
@@ -78,7 +78,7 @@
   };
   GF.acts.accountActual = (el) => {
     const a = GF.acc(el.dataset.id);
-    GF.sheet({ title: "Actual bank balance", body: `<p class="small muted">Enter the balance your bank app or passbook shows. Glass Finance never fetches it on its own.</p><label class="field"><span>Balance (₹)</span><input class="input amt" id="ab-v" inputmode="decimal" value="${a.actualBalance != null ? GF.fromPaise(a.actualBalance) : ""}"></label><button class="btn primary block" id="ab-s">Save</button>${a.actualBalance != null ? '<button class="btn block" id="ab-c" style="margin-top:8px">Clear</button>' : ""}`,
+    GF.sheet({ title: "Actual bank balance", body: `<p class="small muted">Enter the balance your bank app or passbook shows. Finance Tracker never fetches it on its own.</p><label class="field"><span>Balance (₹)</span><input class="input amt" id="ab-v" inputmode="decimal" value="${a.actualBalance != null ? GF.fromPaise(a.actualBalance) : ""}"></label><button class="btn primary block" id="ab-s">Save</button>${a.actualBalance != null ? '<button class="btn block" id="ab-c" style="margin-top:8px">Clear</button>' : ""}`,
       mount(sh) {
         $("#ab-s", sh).onclick = () => { const v = $("#ab-v", sh).value.trim(); if (!v || isNaN(parseFloat(v.replace(/,/g, "")))) return GF.toast("Enter a number"); a.actualBalance = GF.toPaise(v.replace(/,/g, "")); a.actualBalanceAt = new Date().toISOString(); GF.closeAll(() => GF.store.upsert("accounts", a)); };
         const c = $("#ab-c", sh); if (c) c.onclick = () => { a.actualBalance = null; GF.closeAll(() => GF.store.upsert("accounts", a)); };
