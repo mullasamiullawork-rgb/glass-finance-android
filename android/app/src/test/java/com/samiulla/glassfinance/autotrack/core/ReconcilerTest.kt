@@ -127,9 +127,11 @@ class ReconcilerTest {
     }
 @Test fun deletedTransactionNotMatchedByStrongRef() {
     val r = Reconciler()
-val first = r.reconcile(parse(F.paytmPaid)!!, emptyList()) as ReconcileResult.Created
+        val p1 = PaymentAppRegistry.find(F.paytmPaid.packageName)!!.parser.parse(F.paytmPaid)!!
+        val p2 = PaymentAppRegistry.find(F.sbiDebitSameRef.packageName)!!.parser.parse(F.sbiDebitSameRef)!!
+    val first = r.reconcile(p1, emptyList()) as ReconcileResult.Created
 val deleted = first.tx.copy(deleted = true)
-val second = r.reconcile(parse(F.sbiDebitSameRef)!!, listOf(deleted))
+val second = r.reconcile(p2, listOf(deleted))
 assertTrue(second is ReconcileResult.Created)
 }
 }
