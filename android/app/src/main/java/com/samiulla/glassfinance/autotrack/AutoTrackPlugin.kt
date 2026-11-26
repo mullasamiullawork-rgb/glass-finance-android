@@ -16,6 +16,17 @@ import com.samiulla.glassfinance.autotrack.data.AppStateEntity
 import com.samiulla.glassfinance.autotrack.data.DetectedTxEntity
 import com.samiulla.glassfinance.autotrack.data.MerchantRuleEntity
 import org.json.JSONArray
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
+import android.os.Build
+import android.service.notification.NotificationListenerService
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
 
 /** Bridge between the web UI and the native detection engine. */
 @CapacitorPlugin(name = "AutoTrack")
@@ -253,6 +264,105 @@ class AutoTrackPlugin : Plugin() {
     @PluginMethod
     fun eraseEverything(call: PluginCall) = bg(call) {
         dao.clearTx(); dao.clearLog(); dao.clearRules(); dao.clearState(); repo.prefs.edit().clear().apply(); call.resolve()
+    }
+    @PluginMethod
+    fun requestRebind(call: PluginCall) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && hasAccess()) {
+            try {
+                NotificationListenerService.requestRebind(ComponentName(context, PaymentNotificationListener::class.java))
+            } catch (_: Exception) {}
+        }
+        call.resolve(JSObject().put("requested", hasAccess()))
+    }
+
+    @PluginMethod
+    fun checkBiometric(call: PluginCall) {
+        val bm = BiometricManager.from(context)
+        val res = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+        call.resolve(JSObject().put("available", res == BiometricManager.BIOMETRIC_SUCCESS).put("code", res))
+    }
+
+    @PluginMethod
+    fun authenticateBiometric(call: PluginCall) {
+        val act = activity ?: return call.reject("No active activity")
+        val title = call.getString("title") ?: "Unlock Glass Finance"
+        val subtitle = call.getString("subtitle") ?: "Verify your identity to continue"
+        act.runOnUiThread {
+            val executor = ContextCompat.getMainExecutor(context)
+            val prompt = BiometricPrompt(act, executor, object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    call.resolve(JSObject().put("authenticated", true))
+                }
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    call.resolve(JSObject().put("authenticated", false).put("error", errString.toString()))
+                }
+                override fun onAuthenticationFailed() {
+                    // Prompt remains open for retry.
+                }
+            })
+            val info = BiometricPrompt.PromptInfo.Builder()
+                .setTitle(title)
+                .setSubtitle(subtitle)
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                .setNegativeButtonText("Use PIN")
+                .build()
+            prompt.authenticate(info)
+        }
+    }
+
+    @PluginMethod
+    fun exportPdfSummary(call: PluginCall) = bg(call) {
+        val title = call.getString("title") ?: "Glass Finance Summary"
+        val subtitle = call.getString("subtitle") ?: ""
+        val lines = call.getArray("lines") ?: JSArray()
+        val fileName = (call.getString("fileName") ?: "GlassFinance-Summary.pdf").replace(Regex("[^A-Za-z0-9._-]"), "_")
+        val doc = PdfDocument()
+        val titlePaint = Paint().apply { color = Color.rgb(15, 23, 42); textSize = 18f; isFakeBoldText = true; isAntiAlias = true }
+        val subPaint = Paint().apply { color = Color.rgb(100, 116, 139); textSize = 11f; isAntiAlias = true }
+        val bodyPaint = Paint().apply { color = Color.rgb(30, 41, 59); textSize = 11.5f; isAntiAlias = true }
+        val boldPaint = Paint().apply { color = Color.rgb(15, 23, 42); textSize = 12f; isFakeBoldText = true; isAntiAlias = true }
+        var pageNum = 1
+        var page = doc.startPage(PdfDocument.PageInfo.Builder(595, 842, pageNum).create())
+        var canvas = page.canvas
+        var y = 52f
+        canvas.drawText(title, 44f, y, titlePaint); y += 20f
+        if (subtitle.isNotBlank()) { canvas.drawText(subtitle, 44f, y, subPaint); y += 22f }
+        y += 8f
+        for (i in 0 until lines.length()) {
+            val line = lines.optString(i, "")
+            if (y > 790f) {
+                doc.finishPage(page)
+                pageNum++
+                page = doc.startPage(PdfDocument.PageInfo.Builder(595, 842, pageNum).create())
+                canvas = page.canvas
+                y = 52f
+            }
+            if (line.startsWith("## ")) {
+                y += 6f
+                canvas.drawText(line.removePrefix("## "), 44f, y, boldPaint)
+                y += 18f
+            } else if (line.isBlank()) {
+                y += 10f
+            } else {
+                canvas.drawText(line.take(92), 44f, y, bodyPaint)
+                y += 16f
+            }
+        }
+        doc.finishPage(page)
+        val outFile = File(context.cacheDir, fileName)
+        FileOutputStream(outFile).use { doc.writeTo(it) }
+        doc.close()
+        val uri = FileProvider.getUriForFile(context, context.packageName + ".fileprovider", outFile)
+        val share = Intent(Intent.ACTION_SEND).apply {
+            type = "application/pdf"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, title)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        activity?.runOnUiThread {
+            try { context.startActivity(Intent.createChooser(share, "Share PDF summary").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
+        }
+        call.resolve(JSObject().put("exported", true).put("fileName", fileName))
     }
 
     private fun toJs(t: DetectedTx): JSObject = JSObject()
